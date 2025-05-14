@@ -1,0 +1,14 @@
+//inspire_hand_state.idl
+module inspire
+{
+    struct inspire_hand_state
+    {
+        sequence<int16,6>  pos_act;
+        sequence<int16,6>  angle_act;
+        sequence<int16,6>  force_act;
+        sequence<int16,6>  current;
+        sequence<uint8,6>  err;
+        sequence<uint8,6>  status;
+        sequence<uint8,6>  temperature;
+    };
+};
