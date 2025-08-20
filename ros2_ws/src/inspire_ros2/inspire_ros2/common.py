@@ -86,3 +86,9 @@ JOINT_MAX = [
 
 JOINT_MIN = np.array(JOINT_MIN)
 JOINT_MAX = np.array(JOINT_MAX)
+
+JOINT_VEL_MIN = 0.0 * np.ones(len(JOINT_MIN))
+JOINT_VEL_MAX = 1.0 * np.ones(len(JOINT_MAX))
+
+INDEX_EXTEND_ONLY_POS = np.array([-0.1, -0.1, 0.0, 1.7, 1.7, 1.7])
+MIDDLE_EXTEND_ONLY_POS = np.array([-0.1, -0.1, 1.7, 0.0, 1.7, 1.7])

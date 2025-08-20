@@ -2,6 +2,7 @@ import numpy as np
 from sensor_msgs.msg import JointState
 from inspire_ros2.common import (
     JOINT_NAMES, JOINT_MIN, JOINT_MAX,
+    JOINT_VEL_MIN, JOINT_VEL_MAX,
     ACTUATOR_NAMES, NUM_ACTUATORS, ACTUATOR_MIN, ACTUATOR_MAX,
     PASSIVE_JOINTS
 )
@@ -77,7 +78,7 @@ def map_joint_to_actuator(joint_names, joint_values):
         joint_values (list): List of joint angles.
     
     Returns:
-        list: Mapped actuator values.
+        list: Mapped actuator values (0 ~ 1000).
     """
     if len(joint_names) != 6:
         joint_names = JOINT_NAMES
@@ -93,6 +94,32 @@ def map_joint_to_actuator(joint_names, joint_values):
         actuator_values.append(actuator_value)
         
     return actuator_values
+
+
+def map_joint_velocity_to_actuator(joint_names, joint_vels):
+    """
+    Maps joint velocities to actuator values.
+    
+    Args:
+        joint_values (list): List of joint velocities.
+    
+    Returns:
+        list: Mapped actuator velocities (0 ~ 1000).
+    """
+    if len(joint_names) != 6:
+        joint_names = JOINT_NAMES
+    actuator_vels = []
+    for i in range(NUM_ACTUATORS):
+        actuator_name = ACTUATOR_NAMES[i]
+        joint_id = joint_names.index(actuator_name)
+        joint_vel = joint_vels[joint_id]
+        joint_vel_min, joint_vel_max = JOINT_VEL_MIN[joint_id], JOINT_VEL_MAX[joint_id]
+        normalized = (joint_vel - joint_vel_min) / (joint_vel_max - joint_vel_min)
+        actuator_vel = ACTUATOR_MIN + normalized * (ACTUATOR_MAX - ACTUATOR_MIN)
+        actuator_vel = int(min(max(actuator_vel, ACTUATOR_MIN), ACTUATOR_MAX))
+        actuator_vels.append(actuator_vel)
+        
+    return actuator_vels
 
 
 def get_q_from_act_joints(pin_model, act_joints):

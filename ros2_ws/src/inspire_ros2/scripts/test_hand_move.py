@@ -7,7 +7,8 @@ from inspire_ros2.common import JOINT_NAMES, JOINT_MIN, JOINT_MAX
 class JointCmdPublisher(Node):
     def __init__(self):
         super().__init__('joint_cmd_publisher')
-        self.publisher_ = self.create_publisher(JointState, '/joint_cmd', 10)
+        self.publisher_ = self.create_publisher(JointState, '/inspire/joint_cmd', 10)
+
         self.joint_names = JOINT_NAMES
         self.joint_min = JOINT_MIN
         self.joint_max = JOINT_MAX

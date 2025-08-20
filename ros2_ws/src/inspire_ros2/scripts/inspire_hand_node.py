@@ -1,4 +1,4 @@
-#!/home/jyp/research/key_research/inspire_hand_ws/.venv/bin/python
+#!/usr/bin/python
 
 import os
 import sys
@@ -10,7 +10,7 @@ sys.path.append('/home/jyp/research/key_research/inspire_hand_ws/inspire_hand_sd
 from inspire_sdkpy import inspire_hand_defaut,inspire_dds
 from dds_subscribe import DDSHandler
 from unitree_sdk2py.core.channel import ChannelPublisher, ChannelFactoryInitialize
-from inspire_ros2.utils import get_joint_state_msg, map_joint_to_actuator
+from inspire_ros2.utils import get_joint_state_msg, map_joint_to_actuator, map_joint_velocity_to_actuator
 
 
 class InspireHandNode(Node):
@@ -22,22 +22,24 @@ class InspireHandNode(Node):
         self.pubr = ChannelPublisher("rt/inspire_hand/ctrl/r", inspire_dds.inspire_hand_ctrl)
         self.pubr.Init()
         self.cmd = inspire_hand_defaut.get_inspire_hand_ctrl()
-        self.cmd.mode=0b0001
+        # self.cmd.mode=0b0001  # ANGLE_SET
+        self.cmd.mode=0b1001    # ANGLE_SET + SPEED_SET
 
         self.joint_state_pub = self.create_publisher(
             JointState,
-            '/joint_states',
+            '/inspire/joint_states',
             10
         )
 
         self.joint_cmd_sub = self.create_subscription(
             JointState,
-            '/joint_cmd',
+            '/inspire/joint_cmd',
             self.joint_cmd_callback,
             10
         )
 
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.get_logger().info('Subscriptions and publishers have been set up')
+        self.timer = self.create_timer(1/50, self.timer_callback)
 
     def timer_callback(self):
         data = self.dds_handler.read()
@@ -53,9 +55,12 @@ class InspireHandNode(Node):
 
     def joint_cmd_callback(self, msg:JointState):
         actuator_values = map_joint_to_actuator(msg.name, msg.position)
+        actuator_vels = map_joint_velocity_to_actuator(msg.name, msg.velocity)
         self.cmd.angle_set = actuator_values
+        self.cmd.speed_set = actuator_vels
         self.pubr.Write(self.cmd)
-        self.get_logger().info(f"Command sent: {self.cmd.angle_set}")
+        self.get_logger().info(f"ANGLE_SET sent: {self.cmd.angle_set}")
+        self.get_logger().info(f"SPEED_SET sent: {self.cmd.speed_set}")
         
 
 def main(args=None):
