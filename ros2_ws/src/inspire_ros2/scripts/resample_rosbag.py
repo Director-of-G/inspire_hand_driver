@@ -37,8 +37,7 @@ aligned_inspire_js = []
 t_ur = np.array(ur_js['t'])
 t_inspire = np.array(inspire_js['t'])
 record_inspire_jname = [inspire_jname_remap[name] for name in inspire_js['names']]
-inspire_js_remap = [desire_inspire_jname_order.index(name) for name in record_inspire_jname]
-breakpoint()
+inspire_js_remap = [record_inspire_jname.index(name) for name in desire_inspire_jname_order]
 
 for t_sec in poses['t']:
     idx_ur = np.argmin(np.abs(t_ur - t_sec))
@@ -54,6 +53,27 @@ dataset = {
     "inspire_js": np.array(aligned_inspire_js)[:, inspire_js_remap].tolist()
 }
 
-pickle.dump(dataset, open(os.path.join(bag_path, "parsed", "dataset.pkl"), "wb"))
+# train test split
+full_length = len(dataset['t'])
+train_ratio = 0.8
+train_idx = np.random.choice(np.arange(full_length), size=int(train_ratio * full_length), replace=False)
+train_idx = np.sort(train_idx)
+test_idx = np.setdiff1d(np.arange(full_length), train_idx)
 
-breakpoint()
+trainset = {
+    "t": np.array(dataset['t'])[train_idx].tolist(),
+    "poses": {id: np.array(dataset['poses'][id])[train_idx].tolist() for id in dataset['poses']},
+    "ur_js": np.array(dataset['ur_js'])[train_idx].tolist(),
+    "inspire_js": np.array(dataset['inspire_js'])[train_idx].tolist()
+}
+testset = {
+    "t": np.array(dataset['t'])[test_idx].tolist(),
+    "poses": {id: np.array(dataset['poses'][id])[test_idx].tolist() for id in dataset['poses']},
+    "ur_js": np.array(dataset['ur_js'])[test_idx].tolist(),
+    "inspire_js": np.array(dataset['inspire_js'])[test_idx].tolist()
+}
+
+pickle.dump(dataset, open(os.path.join(bag_path, "parsed", "full_dataset.pkl"), "wb"))
+pickle.dump(trainset, open(os.path.join(bag_path, "parsed", "train_dataset.pkl"), "wb"))
+pickle.dump(testset, open(os.path.join(bag_path, "parsed", "test_dataset.pkl"), "wb"))
+

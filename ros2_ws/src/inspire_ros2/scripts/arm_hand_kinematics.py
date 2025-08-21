@@ -22,6 +22,10 @@ hand_mesh_url = os.path.join(hand_model_root, "meshes")
 pin_model, collision_model, visual_model = pin.buildModelsFromUrdf(hand_urdf_url, hand_mesh_url)
 data = pin_model.createData()
 
+frames = [frame.name for frame in pin_model.frames]
+joint_frame_idx = frames.index('right_index_2')
+ftip_frame_idx = frames.index('index_force_sensor_3')
+
 # joint order
 # shoulder_pan_joint, shoulder_lift_joint, elbow_joint, wrist_1_joint, wrist_2_joint, wrist_3_joint
 # right_index_1_joint, right_index_2_joint,
@@ -37,6 +41,20 @@ visualizer.initViewer()
 visualizer.loadViewerModel()
 
 q0 = np.zeros(6+12)
+
+T_marker2joint = np.array([
+    [0, 0, 1, 0.025],
+    [0, 1, 0, 0.065],
+    [-1, 0, 0, -0.005],
+    [0, 0, 0, 1]
+])
+
+pin.forwardKinematics(pin_model, data, q0)
+pin.updateFramePlacements(pin_model, data)
+joint_pose = data.oMf[joint_frame_idx].np.copy()
+ftip_pose = data.oMf[ftip_frame_idx].np.copy()
+print(joint_pose)
+
 visualizer.display(q0)
 
 breakpoint()
